@@ -1,10 +1,6 @@
-from contextlib import contextmanager
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from fastapi_ddd.common.config.infra_config import infra_settings
-from fastapi_ddd.common.exception.custom_exceptions import DatabaseException
 from fastapi_ddd.domain.entity import Base
 
 SQLALCHEMY_DATABASE_URL = infra_settings.DB.URL
@@ -12,20 +8,22 @@ SQLALCHEMY_DATABASE_URL = infra_settings.DB.URL
 
 class Database:
     def __init__(self, database_url: str = SQLALCHEMY_DATABASE_URL) -> None:
-        self._engine = create_engine(database_url, echo=True)
-        self._session_maker = sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
+        self._engine = create_async_engine(database_url, echo=True, pool_pre_ping=True)
+        self._session_maker = async_sessionmaker(
+            bind=self._engine,
+            class_=AsyncSession,
+            expire_on_commit=False,
+            autocommit=False,
+            autoflush=False,
+        )
 
-    def create_database(self) -> None:
-        Base.metadata.create_all(self._engine)
+    async def create_database(self) -> None:
+        async with self._engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-    @contextmanager
-    def session_factory(self):
-        session: Session = self._session_maker()
-        try:
-            yield session
-        except Exception as exc:
-            session.rollback()
-            raise DatabaseException("A database exception occurred.", exc) from exc
-        finally:
-            session.commit()
-            session.close()
+    async def close(self) -> None:
+        await self._engine.dispose()
+
+    @property
+    def session_maker(self) -> async_sessionmaker[AsyncSession]:
+        return self._session_maker

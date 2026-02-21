@@ -23,14 +23,14 @@ class DatabaseFactory:
     @staticmethod
     def create() -> Database:
         dbms = "postgresql"
-        driver = "psycopg2"
+        driver = "asyncpg"
 
-        name: str = os.getenv("DB_NAME")
-        user: str = os.getenv("DB_USER")
-        pwd: str = os.getenv("DB_PASSWORD")
+        name: str = os.getenv("DB_NAME", "fastapi_ddd")
+        user: str = os.getenv("DB_USER", "postgres")
+        pwd: str = os.getenv("DB_PASSWORD", "postgres")
 
-        host: str = os.getenv("BE_DB_HOST")
-        port: str = os.getenv("BE_DB_PORT")
+        host: str = os.getenv("BE_DB_HOST", "localhost")
+        port: str = os.getenv("BE_DB_PORT", "5432")
 
         url: str = f"{dbms}+{driver}://{user}:{pwd}@{host}:{port}/{name}"
 

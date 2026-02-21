@@ -1,5 +1,6 @@
 import re
 
+import bcrypt
 from email_validator import EmailNotValidError, validate_email
 
 
@@ -24,6 +25,11 @@ class PasswordValidator:
         return passwd
 
     @staticmethod
+    def validate_and_hash(passwd: str) -> str:
+        PasswordValidator.validate(passwd)
+        return PasswordHasher.hash(passwd)
+
+    @staticmethod
     def _validate_min_passwd_length(passwd):
         min_passwd_length = 8
         if len(passwd) < min_passwd_length:
@@ -44,3 +50,14 @@ class PasswordValidator:
     def _validate_uppercase_letter(passwd):
         if not any(char.isupper() for char in passwd):
             raise ValueError("Your password must contain at least one uppercase letter.")
+
+
+class PasswordHasher:
+    @staticmethod
+    def hash(passwd: str) -> str:
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(passwd.encode("utf-8"), salt).decode("utf-8")
+
+    @staticmethod
+    def verify(passwd: str, hashed: str) -> bool:
+        return bcrypt.checkpw(passwd.encode("utf-8"), hashed.encode("utf-8"))

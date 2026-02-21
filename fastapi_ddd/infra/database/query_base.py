@@ -1,7 +1,7 @@
 from typing import Generic, Optional, Type, TypeVar
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_ddd.domain.entity import Base, EntityId
 
@@ -15,21 +15,20 @@ class QueryBase(Generic[DomainType]):
     ):
         self.domain: type[DomainType] = domain
 
-    def find_by_id(self, session: Session, entity_id: EntityId) -> Optional[DomainType]:
-        return session.get(self.domain, entity_id.uuid)
+    async def find_by_id(self, session: AsyncSession, entity_id: EntityId) -> Optional[DomainType]:
+        return await session.get(self.domain, entity_id.uuid)
 
-    def find_all(self, session: Session, *, skip: int = 0, limit: int = 100) -> list[DomainType]:
+    async def find_all(self, session: AsyncSession, *, skip: int = 0, limit: int = 100) -> list[DomainType]:
         stmt = select(self.domain).offset(skip).limit(limit)
 
-        results: list[DomainType] = session.execute(stmt).scalars().all()
+        result = await session.execute(stmt)
+        return list(result.scalars().all())
 
-        return results
-
-    def create(self, session: Session, domain: DomainType) -> DomainType:
+    async def create(self, session: AsyncSession, domain: DomainType) -> None:
         session.add(domain)
-        session.flush()
+        await session.flush()
 
-    def delete(self, session: Session, entity_id: EntityId) -> None:
-        domain: Optional[DomainType] = session.get(self.domain, entity_id.uuid)
+    async def delete(self, session: AsyncSession, entity_id: EntityId) -> None:
+        domain: Optional[DomainType] = await session.get(self.domain, entity_id.uuid)
 
-        session.delete(domain)
+        await session.delete(domain)
