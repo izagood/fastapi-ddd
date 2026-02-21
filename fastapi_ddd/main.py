@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
@@ -6,15 +8,25 @@ from loguru import logger
 from fastapi_ddd.common.config.app_config import app_settings
 from fastapi_ddd.common.config.logger import init_logging
 from fastapi_ddd.common.exception.exception_handlers import exception_handlers
+from fastapi_ddd.infra.database.init_db import close_db, init_db
 from fastapi_ddd.presentation.rest.routers import api_router
 
 init_logging()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+    await close_db()
+
 
 app = FastAPI(
     title=app_settings.FAST_API.TITLE,
     version=app_settings.FAST_API.VERSION,
     exception_handlers=exception_handlers,
     default_response_class=ORJSONResponse,
+    lifespan=lifespan,
 )
 app.include_router(router=api_router)
 
