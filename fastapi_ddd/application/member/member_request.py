@@ -3,7 +3,6 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 from fastapi_ddd.domain.entity import EntityId
-from fastapi_ddd.domain.member.member_validator import PasswordValidator
 
 
 class CreateMemberRequest(BaseModel):
@@ -14,7 +13,9 @@ class CreateMemberRequest(BaseModel):
     @field_validator("passwd")
     @classmethod
     def validate_passwd(cls, value: str) -> str:
-        return PasswordValidator.validate(value)
+        if len(value) < 8:
+            raise ValueError("passwd must be at least 8 characters")
+        return value
 
 
 class GetMemberRequest(BaseModel):
@@ -33,4 +34,10 @@ class ChangePasswdRequest(BaseModel):
     @field_validator("passwd")
     @classmethod
     def validate_passwd(cls, value: str) -> str:
-        return PasswordValidator.validate(value)
+        if len(value) < 8:
+            raise ValueError("passwd must be at least 8 characters")
+        return value
+
+
+class ChangeEmailRequest(BaseModel):
+    email: EmailStr

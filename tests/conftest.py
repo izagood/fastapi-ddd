@@ -1,5 +1,4 @@
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -16,7 +15,7 @@ def mock_session():
     session.rollback = AsyncMock()
     session.close = AsyncMock()
     session.flush = AsyncMock()
-    session.add = AsyncMock()
+    session.add = MagicMock()
     session.execute = AsyncMock()
     session.get = AsyncMock()
     return session
@@ -29,8 +28,4 @@ def mock_uow(mock_session):
 
 @pytest.fixture
 def sample_member():
-    now = datetime.now(timezone.utc)
-    member = Member(email="test@example.com", passwd=VALID_PASSWORD, name="Test User")
-    member.created_at = now
-    member.updated_at = now
-    return member
+    return Member(email="test@example.com", passwd=VALID_PASSWORD, name="Test User")

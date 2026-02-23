@@ -1,14 +1,16 @@
+import os
+
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from fastapi_ddd.common.config.infra_config import infra_settings
 from fastapi_ddd.domain.entity import Base
 
-SQLALCHEMY_DATABASE_URL = infra_settings.DB.URL
-
 
 class Database:
-    def __init__(self, database_url: str = SQLALCHEMY_DATABASE_URL) -> None:
-        self._engine = create_async_engine(database_url, echo=True, pool_pre_ping=True)
+    def __init__(self, database_url: str | None = None) -> None:
+        url = database_url or infra_settings.DB.DATABASE_URL
+        echo = os.getenv("SQL_ECHO", "false").lower() == "true"
+        self._engine = create_async_engine(url, echo=echo, pool_pre_ping=True)
         self._session_maker = async_sessionmaker(
             bind=self._engine,
             class_=AsyncSession,

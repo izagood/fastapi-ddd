@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from fastapi_ddd.domain.member.member import Member
 
@@ -21,27 +21,3 @@ class MemberDTO(BaseModel):
             created_at=member.created_at,
             updated_at=member.updated_at,
         )
-
-
-class CreateMemberResponse(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    member_dto: MemberDTO
-
-
-class GetMemberResponse(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    member_dto: MemberDTO
-
-
-class GetMembersResponse(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    member_dto_list: list[MemberDTO]
-
-
-class UpdateMemberProfileResponse(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    member_dto: MemberDTO
