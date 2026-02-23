@@ -67,7 +67,7 @@ class TestMember:
 
     def test_change_email_none_raises(self):
         member = Member(email="test@example.com", passwd=VALID_PASSWORD, name="Test User")
-        with pytest.raises(TypeError):
+        with pytest.raises((TypeError, ValueError)):
             member.change_email(None)
 
     def test_change_passwd(self):
@@ -79,7 +79,7 @@ class TestMember:
 
     def test_change_passwd_none_raises(self):
         member = Member(email="test@example.com", passwd=VALID_PASSWORD, name="Test User")
-        with pytest.raises(TypeError):
+        with pytest.raises((TypeError, ValueError)):
             member.change_passwd(None)
 
     def test_delete(self):

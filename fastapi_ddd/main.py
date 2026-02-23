@@ -28,33 +28,24 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
     lifespan=lifespan,
 )
-app.include_router(router=api_router)
+app.include_router(router=api_router, prefix="/api/v1")
 
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     logger.info(f"Request {request.method} {request.url}")
-
-    body = await request.body()
-    request.state.body = body
-
-    logger.info(f"Request Body: {body.decode('utf-8')}")
-
     response = await call_next(request)
-
-    logger.info(f"Response status code: {response.status_code}")
-
+    logger.info(f"Response {request.method} {request.url} - {response.status_code}")
     return response
 
 
-origins = ["*"]
-
+cors = app_settings.CORS
 app.add_middleware(
     middleware_class=CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=cors.origins_list,
+    allow_credentials=cors.CORS_ALLOW_CREDENTIALS,
+    allow_methods=cors.methods_list,
+    allow_headers=cors.headers_list,
 )
 
 logger.info("Run FastAPI DDD backend Example")
